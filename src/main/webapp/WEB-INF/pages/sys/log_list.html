@@ -1,0 +1,105 @@
+<div class="row">
+	<div class="col-xs-12">
+		<div class="box">
+			<div class="box-header">
+				<h3 class="box-title">用户管理</h3>
+
+				<div class="box-tools">
+					<div class="input-group input-group-sm" style="width: 350px;">
+						<input type="text" name="table_search" id="searchNameId"
+							class="form-control pull-right" placeholder="用户名">
+
+						<div class="input-group-btn">
+							<button type="button" class="btn btn-default btn-search">
+                                <i class="fa fa-search"></i>
+							</button>
+							<button type="button" class="btn btn-default btn-add">添加</button>
+							<button type="button" class="btn btn-default btn-update">修改</button>
+						</div>
+					</div>
+				</div>
+			</div>
+			<!-- /.box-header -->
+			<div class="box-body table-responsive no-padding">
+				<table class="table table-hover">
+					<thead>
+						<tr>
+							<th>用户名</th>
+							<th>操作</th>
+							<th>请求IP</th>
+							<th>请求方法</th>
+							<th>请求参数</th>
+							<th>创建时间</th>
+							<th>执行时间</th>
+						</tr>
+					</thead>
+					<tbody id="tbodyId"></tbody>
+				</table>
+			</div>
+			<div id="pageId" class="box-footer clearfix">
+			</div>
+			<!-- /.box-body -->
+		</div>
+		<!-- /.box -->
+	</div>
+</div>
+<script type="text/javascript">
+   $(document).ready(function(){
+	   $("#pageId").load("pageUI.do",function(){
+		   doGetObjects();
+	   });
+	   $(".input-group-btn")
+	   .on("click",".btn-search",doQueryObjects);
+   });
+   //处理查询按钮事件
+   function doQueryObjects(){
+	   $(".pagination").data("pageCurrent",1);
+	   doGetObjects();
+   }
+   //页面加载完成异步加载当前页数据
+   function doGetObjects(){
+	   var url="log/doFindPageObjects.do";
+	   var pageCurrent=
+	   $(".pagination").data("pageCurrent");
+	   if(!pageCurrent)pageCurrent=1;
+	   var params={"pageCurrent":pageCurrent}
+	   params.username=$("#searchNameId").val().trim();
+	   console.log(params);
+	   $.getJSON(url,params,function(result){
+		   if(result.state==1){
+			  setTableBodyRows(result.data.records);
+			  setPagination(result.data);
+		   }else{
+			  alert(result.message);
+		   }
+	   });
+   }
+   //通过服务端返回的数据初始化页面
+   function setTableBodyRows(data){
+	  //1.获取tbody对象，并清空内容
+	  var tBody=$("#tbodyId");
+	  tBody.empty();
+	  //2.迭代data内容将数据追加到tbody中
+	  for(var i in data){
+		 var tr=$("<tr></tr>");
+		 var tds=createTds(data[i]);
+		 tr.append(tds);
+		 tBody.append(tr);
+	  }
+   }
+   function createTds(data){
+	   var tds=
+		     "<td>"+data.username+"</td>"+
+		     "<td>"+data.operation+"</td>"+
+		     "<td>"+data.ip+"</td>"+
+		     "<td>"+data.method+"</td>"+
+		     "<td>"+data.params+"</td>"+
+		     "<td>"+data.createdTime+"</td>"+
+		     "<td>"+data.time+"</td>";
+	  return tds;
+   }
+</script>
+
+
+
+

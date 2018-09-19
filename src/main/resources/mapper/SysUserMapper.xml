@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jt.sys.dao.SysUserDao">
+     <select id="findUserByUserName"
+             resultType="sysUser">
+           select *
+           from sys_users
+           where username=#{username}        
+     </select>
+     <select id="findUserPermissions"
+             resultType="string">
+           select m.permission
+           from sys_users u join 
+                sys_user_roles ur join 
+                sys_role_menus rm join 
+                sys_menus m
+                
+                on u.id=ur.user_id   and 
+                ur.role_id=rm.role_id  and 
+                rm.menu_id=m.id 
+           where u.username=#{username}
+     </select>
+     <update id="updateObject"
+             parameterType="sysUser">
+         update sys_users
+         <set>
+          <if test="username!=null and username!=''">
+             username=#{username},
+          </if>
+          <if test="password!=null and password!=''">
+             password=#{password},
+          </if>
+          <if test="salt!=null and salt!=''">
+             salt=#{salt},
+          </if>
+          <if test="email!=null and email!=''">
+             email=#{email},
+          </if>
+          <if test="mobile!=null and mobile!=''">
+             mobile=#{mobile},
+          </if>
+          <if test="deptId!=null and deptId!=''">
+             deptId=#{deptId},
+          </if>
+          <if test="modifiedUser!=null and modifiedUser!=''">
+             modifiedUser=#{modifiedUser},
+          </if>
+             modifiedTime=now(),
+         </set>
+            where id=#{id}
+     </update>
+     
+     <select id="findObjectById"
+             resultType="map">
+             select u.*,d.name deptName
+             from sys_users u left join sys_depts d
+             on u.deptId=d.id
+             where u.id=#{id}        
+     </select>
+     <insert id="insertObject"
+             parameterType="sysUser"
+             useGeneratedKeys="true"
+             keyProperty="id">
+          insert into sys_users
+          (username,password,salt,email,mobile,valid,deptId,
+           createdTime,modifiedTime,createdUser,modifiedUser)
+           values
+          (#{username},#{password},#{salt},
+           #{email},#{mobile},#{valid},#{deptId},
+           now(),now(),#{createdUser},#{modifiedUser}
+          )
+     </insert>
+    
+    
+     <update id="validById">
+        update sys_users
+        set valid=#{valid}
+        where id=#{id}
+     </update>
+     
+     <sql id="pageWhere">
+         <where>
+           <if test="username!=null and username !=''">
+              username like concat("%",#{username},"%")
+           </if>
+         </where>
+     </sql>
+     
+     <select id="findPageObjects" resultType="map">
+           select u.*,d.name deptName
+           from sys_users u left join sys_depts d
+           on u.deptId=d.id
+           <include refid="pageWhere"/>
+           order by createdTime desc
+           limit #{startIndex},#{pageSize}
+     </select>
+     <select id="getRowCount" resultType="int">
+           select count(*)
+           from sys_users
+           <include refid="pageWhere"/>
+     </select>
+   
+</mapper>
+
+
+

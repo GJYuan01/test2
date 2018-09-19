@@ -1,0 +1,148 @@
+<!-- Horizontal Form -->
+ <div class="box box-info">
+      <div class="box-header with-border">
+        <h3 class="box-title">添加角色</h3>
+      </div>
+      <!-- /.box-header -->
+      <!-- form start -->
+      <form class="form-horizontal">
+        <div class="box-body">
+          <div class="form-group">
+            <label for="nameId" class="col-sm-2 control-label">名称</label>
+
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="name" id="nameId" placeholder="名称">
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="noteId" class="col-sm-2 control-label">描述</label>
+
+            <div class="col-sm-10">
+              <input type="text" class="form-control" name="note" id="noteId" placeholder="描述">
+            </div>
+          </div>
+          <div class="form-group">
+				<label class="col-sm-2 control-label">授权</label>
+				<div class="col-sm-10">
+						<ul id="menuTree" class="ztree"></ul>
+				</div>
+		  </div>
+        </div>
+        <!-- /.box-body -->
+        <div class="box-footer">
+          <button type="button" class="btn btn-default btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-info pull-right btn-save">Save</button>
+        </div>
+        <!-- /.box-footer -->
+      </form>
+    </div>
+    <script type="text/javascript" src="bower_components/ztree/jquery.ztree.all.min.js"></script>
+    <script type="text/javascript">
+    var ztree; 
+    var setting = {
+   	data : {
+   	    simpleData : {
+   			enable : true,
+   			idKey : "id",  //节点数据中保存唯一标识的属性名称
+   			pIdKey : "parentId",  //节点数据中保存其父节点唯一标识的属性名称
+   			rootPId : null  //根节点id
+   		}
+   	},
+   	check:{
+   		enable:true,
+   		nocheckInherit:true
+   	}
+    }
+    $(function(){
+    	doLoadSysMenus();
+    	$(".box-footer")
+    	.on("click",".btn-cancel",doCancel)
+    	.on("click",".btn-save",doSaveOrUpdate);
+    	
+    });
+    //页面加载完成初始化zTree
+    function doLoadSysMenus(){
+    	var url="menu/doFindZTreeNodes.do"
+    	$.getJSON(url,function(result){
+    		if(result.state==1){
+    		ztree=$.fn.zTree.init(
+    		$("#menuTree"),setting,result.data);
+    		var data=$(".container-fluid").data("data");
+        	if(data){
+        		doInitEditForm(data);
+        	}
+    		}else{
+    		alert(result.message);
+    		}
+    	})
+    }
+    //初始化表单数据
+    function doInitEditForm(data){
+    	$("#nameId").val(data.role.name);
+    	$("#noteId").val(data.role.note);
+    	//展开所有节点
+		ztree.expandAll(true);
+		//勾选角色所拥有的菜单
+		var menuIds = data.menuIds;
+		for(var i=0; i<menuIds.length; i++) {
+			//获取key为id值为menuIds[i]的节点
+			var node = ztree.getNodeByParam("id",menuIds[i]);
+			//选中当前节点
+			ztree.checkNode(node,true,false);
+		}
+    }
+    //点击退出按钮时执行此方法
+    function doCancel(){
+    	$(".container-fluid")
+  	   .load("role/listUI.do");
+    	$(".container-fluid").removeData("data");
+    }
+    //点击保存按钮时执行此方法
+    function doSaveOrUpdate(){//insert/update
+    	//获取表单数据
+    	var params=getEditFormData();
+        //假如当前页面.container-fluid对象上绑定着值说明是修改
+    	var data=$(".container-fluid").data("data");
+    	if(data){
+    		params.id=data.role.id;//修改时表单数据中需要添加id
+    	}
+    	//根据当前页面上是否绑定着值来定义url
+    	var insertUrl="role/doSaveObject.do";
+    	var updateUrl="role/doUpdateObject.do";
+    	var url=data?updateUrl:insertUrl;
+    	
+    	//异步提交数据
+    	$.post(url,params,function(result){
+    		if(result.state==1){
+    		alert(result.message);
+    		doCancel();
+    		}else{
+    		alert(result.message);
+    		}
+    	})
+    }
+    //获取表单数据
+    function getEditFormData(){
+    	var params={
+    		name:$("#nameId").val(),
+    		note:$("#noteId").val()
+    	}
+    	//获取选中的node节点
+    	var menuIds=[];
+    	var checkedNodes=
+    	ztree.getCheckedNodes(true);
+    	for(var i in checkedNodes){
+    		menuIds.push(checkedNodes[i].id)
+    	}
+    	params.menuIds=menuIds.toString();
+    	return params;
+    }
+    </script>
+    
+    
+    
+    
+    
+    
+    
+    

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jt.sys.dao.SysLogDao">
+
+    <insert id="insertObject">
+       insert into sys_logs
+       (username,operation,method,params,time,ip,createdTime)
+       values
+       (#{username},#{operation},#{method},#{params},#{time},#{ip},#{createdTime})
+    </insert>
+    
+    <sql id="pageWhere">
+         <where>
+           <if test="username!=null and username !=''">
+              username like concat("%",#{username},"%")
+           </if>
+         </where>
+     </sql>
+    <select id="findPageObjects" resultType="sysLog">
+       select * 
+       from sys_logs
+       <include refid="pageWhere"/>
+       order by createdTime desc
+       limit #{startIndex},#{pageSize}
+    </select>
+    
+    <select id="getRowCount" resultType="int">
+           select count(*)
+           from sys_logs
+           <include refid="pageWhere"/>
+    </select>
+    
+</mapper>
+
+
+

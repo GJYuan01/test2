@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.jt.sys.dao.SysRoleDao">
+    
+    <select id="findObjects"
+            resultType="checkBox">
+        select id,name from sys_roles        
+    </select>
+    
+    <update id="updateObject"
+            parameterType="sysRole">
+           update sys_roles
+           <set>
+            <if test="name!=null and name!=''">
+                name=#{name},
+            </if>
+            <if test="note!=null and note!=''">
+                note=#{note},
+            </if>
+            <if test="modifiedUser!=null and modifiedUser!=''">
+                modifiedUser=#{modifiedUser},
+            </if>
+                modifiedTime=now(),
+            </set>
+           where id=#{id} 
+    </update>
+    
+    <select id="findObjectById"
+            resultType="sysRole">
+         select *
+         from sys_roles
+         where id=#{id}
+    </select>
+    
+    <insert id="insertObject"
+            parameterType="sysRole"
+            useGeneratedKeys="true"
+            keyProperty="id">
+         insert into sys_roles
+         (name,note,createdTime,modifiedTime,createdUser,modifiedUser)
+         values
+         (#{name},#{note},now(),now(),#{createdUser},#{modifiedUser})
+    </insert>
+    
+    <sql id="pageWhere">
+        <where>
+         <if test="name!=null and name!=''">
+            name like concat("%",#{name},"%")
+         </if>
+       </where>
+    </sql>
+    
+    <select id="findPageObjects" resultType="sysRole">
+       select * 
+       from sys_roles
+       <include refid="pageWhere"/>
+       order by createdTime desc
+       limit #{startIndex},#{pageSize}
+    </select>
+    
+    <select id="getRowCount"
+            resultType="int">
+           select count(*)
+           from sys_roles
+           <include refid="pageWhere"/>
+    </select>
+    <delete id="deleteObject">
+       delete from sys_roles
+       where id=#{id}
+    </delete>
+</mapper>
+
+
+
